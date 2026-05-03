@@ -1,0 +1,227 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model categories {
+  categoryId       Int                @id @default(autoincrement())
+  name             String?            @db.VarChar
+  isActive         Boolean?
+  createdAt        DateTime?          @db.Timestamp(6)
+  updatedAt        DateTime?          @db.Timestamp(6)
+  eventsCategories eventsCategories[]
+  newsCategories   newsCategories[]
+}
+
+model events {
+  eventId          Int                @id @default(autoincrement())
+  producerId       Int
+  localizationId   Int
+  name             String?            @db.VarChar
+  description      String?
+  coverImageUrl    String?            @db.VarChar
+  openDate         DateTime?          @db.Timestamp(6)
+  startDate        DateTime?          @db.Timestamp(6)
+  endDate          DateTime?          @db.Timestamp(6)
+  isActive         Boolean?
+  createdAt        DateTime?          @db.Timestamp(6)
+  updatedAt        DateTime?          @db.Timestamp(6)
+  producers        producers          @relation(fields: [producerId], references: [producerId], onUpdate: NoAction)
+  localizations    localizations      @relation(fields: [localizationId], references: [localizationId], onUpdate: NoAction)
+  eventsCategories eventsCategories[]
+  eventsLikes      eventsLikes[]
+  newsEvents       newsEvents[]
+  toursEvents      toursEvents[]
+}
+
+model eventsCategories {
+  eventId    Int
+  categoryId Int
+  createdAt  DateTime?  @db.Timestamp(6)
+  updatedAt  DateTime?  @db.Timestamp(6)
+  categories categories @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade, onUpdate: NoAction)
+  events     events     @relation(fields: [eventId], references: [eventId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([eventId, categoryId])
+}
+
+model eventsLikes {
+  userId    Int
+  eventId   Int
+  createdAt DateTime? @db.Timestamp(6)
+  updatedAt DateTime? @db.Timestamp(6)
+  events    events    @relation(fields: [eventId], references: [eventId], onDelete: Cascade, onUpdate: NoAction)
+  users     users     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([userId, eventId])
+}
+
+model localizations {
+  localizationId      Int                  @id @default(autoincrement())
+  name                String?              @db.VarChar
+  tag                 String?              @db.VarChar
+  zipCode             String?              @db.VarChar
+  address             String?              @db.VarChar
+  cityId              Int?
+  isActive            Boolean?
+  createdAt           DateTime?            @db.Timestamp(6)
+  updatedAt           DateTime?            @db.Timestamp(6)
+  events              events[]
+  localizationsCities localizationsCities? @relation(fields: [cityId], references: [cityId], onDelete: Restrict, onUpdate: NoAction)
+}
+
+model localizationsCities {
+  cityId              Int                  @id @default(autoincrement())
+  name                String?              @db.VarChar
+  stateId             Int?
+  createdAt           DateTime?            @db.Timestamp(6)
+  updatedAt           DateTime?            @db.Timestamp(6)
+  localizations       localizations[]
+  localizationsStates localizationsStates? @relation(fields: [stateId], references: [stateId], onDelete: NoAction, onUpdate: NoAction)
+  usersCustomers      usersCustomers[]
+}
+
+model localizationsStates {
+  stateId             Int                   @id @default(autoincrement())
+  name                String?               @db.VarChar
+  abbreviation        String?               @db.VarChar(2)
+  createdAt           DateTime?             @db.Timestamp(6)
+  updatedAt           DateTime?             @db.Timestamp(6)
+  localizationsCities localizationsCities[]
+}
+
+model news {
+  newsId         Int              @id @default(autoincrement())
+  title          String?          @db.VarChar
+  slug           String?          @db.VarChar
+  content        String?
+  coverImage     String?          @db.VarChar
+  authorId       Int?
+  isActive       Boolean?
+  createdAt      DateTime?        @db.Timestamp(6)
+  updatedAt      DateTime?        @db.Timestamp(6)
+  users          users?           @relation(fields: [authorId], references: [userId], onDelete: NoAction, onUpdate: NoAction)
+  newsCategories newsCategories[]
+  newsEvents     newsEvents[]
+  newsTours      newsTours[]
+}
+
+model newsCategories {
+  newsId     Int
+  categoryId Int
+  createdAt  DateTime?  @db.Timestamp(6)
+  updatedAt  DateTime?  @db.Timestamp(6)
+  categories categories @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade, onUpdate: NoAction)
+  news       news       @relation(fields: [newsId], references: [newsId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([newsId, categoryId])
+}
+
+model newsEvents {
+  newsId    Int
+  eventId   Int
+  createdAt DateTime? @db.Timestamp(6)
+  updatedAt DateTime? @db.Timestamp(6)
+  events    events    @relation(fields: [eventId], references: [eventId], onDelete: Cascade, onUpdate: NoAction)
+  news      news      @relation(fields: [newsId], references: [newsId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([newsId, eventId])
+}
+
+model newsTours {
+  newsId    Int
+  tourId    Int
+  createdAt DateTime? @db.Timestamp(6)
+  updatedAt DateTime? @db.Timestamp(6)
+  news      news      @relation(fields: [newsId], references: [newsId], onDelete: Cascade, onUpdate: NoAction)
+  tours     tours     @relation(fields: [tourId], references: [tourId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([newsId, tourId])
+}
+
+model producers {
+  producerId     Int    @id @default(autoincrement())
+  name           String?   @db.VarChar
+  documentNumber String?   @db.VarChar
+  isActive       Boolean?
+  createdAt      DateTime? @db.Timestamp(6)
+  updatedAt      DateTime? @db.Timestamp(6)
+  events         events[]
+}
+
+model tours {
+  tourId        Int           @id @default(autoincrement())
+  name          String?       @db.VarChar
+  description   String?
+  coverImageUrl String?       @db.VarChar
+  isActive      Boolean?
+  createdAt     DateTime?     @db.Timestamp(6)
+  updatedAt     DateTime?     @db.Timestamp(6)
+  newsTours     newsTours[]
+  toursEvents   toursEvents[]
+}
+
+model toursEvents {
+  tourId    Int
+  eventId   Int
+  isActive  Boolean?
+  createdAt DateTime? @db.Timestamp(6)
+  updatedAt DateTime? @db.Timestamp(6)
+  events    events    @relation(fields: [eventId], references: [eventId], onDelete: Cascade, onUpdate: NoAction)
+  tours     tours     @relation(fields: [tourId], references: [tourId], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([tourId, eventId])
+}
+
+model users {
+  userId           Int                @id @default(autoincrement())
+  type             String?            @db.VarChar
+  email            String             @unique @db.VarChar
+  isActive         Boolean?
+  createdAt        DateTime?          @db.Timestamp(6)
+  updatedAt        DateTime?          @db.Timestamp(6)
+  eventsLikes      eventsLikes[]
+  news             news[]
+  usersAdmins      usersAdmins?
+  usersCredentials usersCredentials[]
+  usersCustomers   usersCustomers?
+}
+
+model usersAdmins {
+  userId    Int       @id
+  createdAt DateTime? @db.Timestamp(6)
+  updatedAt DateTime? @db.Timestamp(6)
+  users     users     @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model usersCredentials {
+  credentialId Int       @id @default(autoincrement())
+  userId       Int?
+  provider     String?   @db.VarChar
+  providerId   String?   @db.VarChar
+  passwordHash String?   @db.VarChar
+  isActive     Boolean?
+  createdAt    DateTime? @db.Timestamp(6)
+  updatedAt    DateTime? @db.Timestamp(6)
+  users        users?    @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model usersCustomers {
+  userId              Int                  @id
+  firstName           String?              @db.VarChar
+  lastName            String?              @db.VarChar
+  gender              String?              @db.VarChar(10)
+  birthDate           DateTime?            @db.Date
+  cityId              Int?
+  phone               String?              @db.VarChar
+  isActive            Boolean?
+  createdAt           DateTime?            @db.Timestamp(6)
+  updatedAt           DateTime?            @db.Timestamp(6)
+  localizationsCities localizationsCities? @relation(fields: [cityId], references: [cityId], onDelete: Restrict, onUpdate: NoAction)
+  users               users                @relation(fields: [userId], references: [userId], onDelete: Cascade, onUpdate: NoAction)
+}
