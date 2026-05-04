@@ -1,5 +1,3 @@
-// src/store/index.ts
-
 import { configureStore } from "@reduxjs/toolkit";
 import {
   persistStore,
@@ -11,9 +9,18 @@ import {
   PURGE,
   REGISTER,
 } from "redux-persist";
-import storage from "redux-persist/lib/storage";
+import createWebStorage from "redux-persist/lib/storage/createWebStorage";
 import authReducer from "./auth";
 import userReducer from "./user";
+
+const createNoopStorage = () => ({
+  getItem: async () => null,
+  setItem: async (_key: string, value: string) => value,
+  removeItem: async () => undefined,
+});
+
+const storage =
+  typeof window !== "undefined" ? createWebStorage("local") : createNoopStorage();
 
 const authPersistConfig = {
   key: "auth",
